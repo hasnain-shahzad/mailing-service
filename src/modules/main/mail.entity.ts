@@ -5,6 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn
 } from 'typeorm';
+import { EnMailStatus } from './common/mail.enums';
 
 @Entity({
     name: 'mails',
@@ -18,6 +19,13 @@ export class Mail {
 
     @Column()
     email: string;
+
+    @Column({
+        type: 'enum',
+        enum: EnMailStatus,
+        default: EnMailStatus.PENDING
+    })
+    status: string;
 
     @CreateDateColumn()
     createdAt: string;
