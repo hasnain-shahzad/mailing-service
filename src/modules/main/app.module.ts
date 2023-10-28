@@ -3,11 +3,11 @@ import { ConfigModule } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { BullModule } from "@nestjs/bull";
-import { EnQueueName } from "modules/queue/common/queue.enums";
+import { EnQueueName } from "../queue/common/queue.enums";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Mail } from "./mail.entity";
 import { LoggerModule } from "../../utils/logger/logger.module";
-import { QueueModule } from "modules/queue/queue.module";
+import { QueueModule } from "../queue/queue.module";
 
 @Module({
     imports: [

@@ -5,7 +5,7 @@ import { Mail } from "./mail.entity";
 import { InjectRepository, TypeOrmModuleAsyncOptions } from "@nestjs/typeorm";
 import { Queue } from "bull";
 import { InjectQueue } from '@nestjs/bull';
-import { EnJob, EnJobDelay, EnJobRetry, EnQueueName } from "modules/queue/common/queue.enums";
+import { EnJob, EnJobDelay, EnJobRetry, EnQueueName } from "./../queue/common/queue.enums";
 import { createDatabase } from "typeorm-extension";
 
 @Injectable()
@@ -72,12 +72,11 @@ export class AppService {
     async sendMail(email: string, name: string) {
         try {
             const mail = new Mail().fromDto(name, email);
-            const newMail = await this.mailRepository.save(mail);
             // Add mail job to Mailing Queue
             await this.mailingQueue.add(
                 EnJob.SEND_EMAIL,
                 {
-                    mailId: newMail.uuid,
+                    mail
                 },
                 {
                     delay: EnJobDelay.ONE_SECOND,
@@ -86,6 +85,18 @@ export class AppService {
                 }
             );
             return;
+        } catch (err) {
+            throw new HttpException(err.mesage, ResponseCode.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Get list of mail requests from db
+     * @returns Mail[]
+     */
+    async getMailRequests() {
+        try {
+            return await this.mailRepository.find();
         } catch (err) {
             throw new HttpException(err.mesage, ResponseCode.BAD_REQUEST);
         }

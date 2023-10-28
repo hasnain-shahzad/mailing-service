@@ -6,7 +6,8 @@ import { MailService } from '../../utils/mailer/mailer.service';
 import { Mail } from '../main/mail.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EnMailStatus } from 'modules/main/common/mail.enums';
+import { EnMailStatus } from '../main/common/mail.enums';
+import { ResponseMessage } from '../../utils/enums';
 
 @Processor(EnQueueName.MAILING)
 export class MailingQueueProcessor {
@@ -26,20 +27,20 @@ export class MailingQueueProcessor {
      * @returns
      */
     @Process(EnJob.SEND_EMAIL)
-    public startSurvey(job: Job) {
-        return new Promise<void>(async (resolve, reject) => {
+    public sendEmail(job: Job) {
+        return new Promise<string>(async (resolve, reject) => {
             try {
                 this.loggerService.log(
-                    `Send email job started for id : ${job.data.mailId}`
+                    `Send email job started for id : ${job.data.mail.email}`
                 );
-                const mail = await this.mailRepository.findOne(job.data.mailId);
-                await this.mailerService.sendEmail(mail.name, mail.email);
-                mail.status = EnMailStatus.SENT;
-                await this.mailRepository.save(mail);
+                const newMailRequest = await this.mailRepository.save(job.data.mail);
+                await this.mailerService.sendEmail(newMailRequest.name, newMailRequest.email);
+                newMailRequest.status = EnMailStatus.SENT;
+                await this.mailRepository.save(newMailRequest);
                 this.loggerService.log(
                     `Send email job ended for id : ${job.data.mailId}`
                 );
-                resolve();
+                resolve(ResponseMessage.SUCCESS);
             } catch (err) {
                 this.loggerService.error(err);
                 reject(err);
